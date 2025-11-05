@@ -67,7 +67,7 @@ class CircularQueue {
             throw out_of_range("Index out of range");
         }
 
-        return data_[index];
+        return _data[index];
     }
 
     const_reference at(size_type index) const {
@@ -75,7 +75,7 @@ class CircularQueue {
             throw out_of_range("Index out of range");
         }
 
-        return data_[index];
+        return _data[index];
     }
 
     // TODO: rewrite function behavior and get rid of "friend"
@@ -116,8 +116,10 @@ class CircularQueue {
         return return_value;
     }
 
-    // TODO: consider removing debug functions
-#ifndef NDEBUG
+// TODO: consider removing debug function
+#ifdef NDEBUG
+    void PRINT_DEBUG_DATA() const {}
+#else
     void PRINT_DEBUG_DATA() const {
         static unsigned long long debug_index = 0;
 
@@ -132,12 +134,10 @@ class CircularQueue {
 
         ++debug_index;
     }
-#elif
-    void PRINT_DEBUG_DATA() {}
 #endif
 
    private:
-    bool valid_range(size_type index) { return !(index < _front_index || index > _rear_index) }
+    bool valid_range(size_type index) { return !(index < _front_index || index > _rear_index); }
 
     void push_back(const value_type& value) {
         if (empty()) {
