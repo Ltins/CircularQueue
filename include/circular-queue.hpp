@@ -17,6 +17,41 @@ class CircularQueue {
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
+    class iterator {
+       public:
+        using iterator_category = random_access_iterator_tag;
+        using value_type = T;
+        using difference_type = ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+
+        iterator(pointer ptr) : _pointer(ptr) {}
+        reference operator*() const { return *_pointer; }
+        pointer operator->() const { return _pointer; }
+
+        iterator& operator++() {
+            ++_pointer;
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator temp = *this;
+            ++_pointer;
+            return temp;
+        }
+
+        bool operator==(const iterator& other) const { return _pointer == other._pointer; }
+
+        bool operator!=(const iterator& other) const { return _pointer != other._pointer; }
+
+       private:
+        pointer _pointer;
+    };
+
+    iterator begin() { return iterator(_data); }
+
+    iterator end() { return iterator(_data + size()); }
+
     CircularQueue() : _front_index(-1), _rear_index(-1) {
         _data = allocator_type().allocate(CIRCULAR_QUEUE_MAXIMUM_CAPACITY);
     }
