@@ -62,6 +62,22 @@ class CircularQueue {
 
     void clear() { _rear_index = _front_index = -1; }
 
+    reference at(size_type index) {
+        if (!valid_range(index)) {
+            throw out_of_range("Index out of range");
+        }
+
+        return data_[index];
+    }
+
+    const_reference at(size_type index) const {
+        if (!valid_range(index)) {
+            throw out_of_range("Index out of range");
+        }
+
+        return data_[index];
+    }
+
     // TODO: rewrite function behavior and get rid of "friend"
     friend ostream& operator<<(ostream& stream, const CircularQueue<value_type>& queue) {
         if (!queue.empty()) {
@@ -87,7 +103,7 @@ class CircularQueue {
 
     value_type dequeue() {
         if (empty()) {
-            underflow_error("CircularQueue Underflow!\n");
+            throw underflow_error("CircularQueue Underflow!\n");
         }
 
         auto return_value = _data[_front_index];
@@ -116,8 +132,13 @@ class CircularQueue {
 
         ++debug_index;
     }
+#elif
+    void PRINT_DEBUG_DATA() {}
+#endif
 
    private:
+    bool valid_range(size_type index) { return !(index < _front_index || index > _rear_index) }
+
     void push_back(const value_type& value) {
         if (empty()) {
             _front_index = 0;
@@ -141,7 +162,4 @@ class CircularQueue {
         _front_index = 0;
         _rear_index = queue_size - 1;
     }
-#elif
-    void PRINT_DEBUG_DATA() {}
-#endif
 };
