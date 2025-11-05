@@ -54,13 +54,55 @@ class CircularQueue {
         copy(other._data + _front_index, other._data + _rear_index + 1, _data);
     }
 
-    bool empty() { return _front_index == _rear_index == -1; }
-    bool full() { return size() == CIRCULAR_QUEUE_MAXIMUM_CAPACITY; }
-    size_type size() { return _rear_index - _front_index + 1; }
+    bool empty() const { return _front_index == -1; }
+
+    bool full() const { return size() == CIRCULAR_QUEUE_MAXIMUM_CAPACITY; }
+
+    size_type size() const { return empty() ? 0 : _rear_index - _front_index + 1; }
+
+    void clear() { _rear_index = _front_index = -1; }
+
+    // TODO: rewrite function behavior and get rid of "friend"
+    friend ostream& operator<<(ostream& stream, const CircularQueue<value_type>& queue) {
+        if (!queue.empty()) {
+            for (auto i = queue._front_index; i <= queue._rear_index; ++i) {
+                stream << "[" << i << "]:" << queue._data[i] << " ";
+            }
+        }
+
+        return stream;
+    }
+
+    void enqueue(const value_type& value) {
+        if (full()) {
+            dequeue();
+        }
+
+        if (_rear_index + 1 >= CIRCULAR_QUEUE_MAXIMUM_CAPACITY) {
+            shift_queue();
+        }
+
+        push_back(value);
+    }
+
+    value_type dequeue() {
+        if (empty()) {
+            underflow_error("CircularQueue Underflow!\n");
+        }
+
+        auto return_value = _data[_front_index];
+        ++_front_index;
+
+        if (_front_index > _rear_index) {
+            _front_index = _rear_index = -1;
+        }
+
+        return return_value;
+    }
 
     // TODO: consider removing debug functions
 #ifndef NDEBUG
-    void PRINT_DEBUG_DATA() {
+    void PRINT_DEBUG_DATA() const {
         static unsigned long long debug_index = 0;
 
         cout << "Debug index -> " << debug_index << endl;
@@ -74,16 +116,32 @@ class CircularQueue {
 
         ++debug_index;
     }
+
+   private:
+    void push_back(const value_type& value) {
+        if (empty()) {
+            _front_index = 0;
+        }
+
+        ++_rear_index;
+        _data[_rear_index] = value;
+    }
+
+    void shift_queue() {
+        if (empty() || _front_index == 0) {
+            return;
+        }
+
+        const auto queue_size = size();
+
+        for (auto i = 0; i < queue_size; ++i) {
+            _data[i] = _data[_front_index + i];
+        }
+
+        _front_index = 0;
+        _rear_index = queue_size - 1;
+    }
 #elif
     void PRINT_DEBUG_DATA() {}
 #endif
-
-    // TODO: rewrite function behavior and get rid of "friend"
-    friend ostream& operator<<(ostream& stream, const CircularQueue<value_type>& queue) {
-        for (size_type i = 0; i < CIRCULAR_QUEUE_MAXIMUM_CAPACITY; ++i) {
-            stream << "[" << i << "]:" << queue._data[i] << " ";
-        }
-
-        return stream;
-    }
 };
