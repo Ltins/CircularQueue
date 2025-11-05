@@ -6,7 +6,7 @@ constexpr unsigned int CIRCULAR_QUEUE_MAXIMUM_CAPACITY = 5;
 // TODO: return 'this' pointer where needed
 template <class T, class Allocator = allocator<T>>
 class CircularQueue {
-    unsigned int _front, _rear;
+    int _front_index, _rear_index;
     T* _data;
 
    public:
@@ -17,8 +17,11 @@ class CircularQueue {
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    CircularQueue() : _front(0), _rear(0) { _data = allocator_type().allocate(CIRCULAR_QUEUE_MAXIMUM_CAPACITY); }
+    CircularQueue() : _front_index(-1), _rear_index(-1) {
+        _data = allocator_type().allocate(CIRCULAR_QUEUE_MAXIMUM_CAPACITY);
+    }
 
+    // NOTE: Remember that copy( ) uses [x, y) range and not [x, y]
     CircularQueue(const value_type* data, const value_type* first_element, const value_type* last_element)
         : CircularQueue() {
         const auto number_of_elements = last_element - first_element;
@@ -28,7 +31,8 @@ class CircularQueue {
         }
 
         copy(first_element, last_element, _data);
-        _rear = number_of_elements - 1;
+        _front_index = 0;
+        _rear_index = number_of_elements - 1;
     }
 
     CircularQueue(const value_type* data, const size_type& number_of_elements) : CircularQueue() {
@@ -36,7 +40,8 @@ class CircularQueue {
             throw overflow_error("Number of elements is bigger than maximum capacity!");
         }
 
-        _rear = number_of_elements - 1;
+        _rear_index = number_of_elements - 1;
+        _front_index = 0;
 
         const auto last_element_pointer = data + number_of_elements;
         copy(data, last_element_pointer, _data);
@@ -44,13 +49,14 @@ class CircularQueue {
 
     ~CircularQueue() { allocator_type().deallocate(_data, CIRCULAR_QUEUE_MAXIMUM_CAPACITY); }
 
-    CircularQueue(const CircularQueue& other) : _front(other._front), _rear(other._rear) {
+    CircularQueue(const CircularQueue& other) : _front_index(other._front_index), _rear_index(other._rear_index) {
         _data = allocator_type().allocate(CIRCULAR_QUEUE_MAXIMUM_CAPACITY);
-        copy(other._data + _front, other._data + _rear + 1, _data);
+        copy(other._data + _front_index, other._data + _rear_index + 1, _data);
     }
 
-    bool empty() { return _front == _rear; }
-    bool full() { return _rear - _front == CIRCULAR_QUEUE_MAXIMUM_CAPACITY; }
+    bool empty() { return _front_index == _rear_index == -1; }
+    bool full() { return size() == CIRCULAR_QUEUE_MAXIMUM_CAPACITY; }
+    size_type size() { return _rear_index - _front_index + 1; }
 
     // TODO: consider removing debug functions
 #ifndef NDEBUG
@@ -59,8 +65,11 @@ class CircularQueue {
 
         cout << "Debug index -> " << debug_index << endl;
         cout << "Data -> " << *this << endl;
-        cout << "Front pointer -> " << _front << endl;
-        cout << "Rear pointer -> " << _rear << endl;
+        cout << "Front index -> " << _front_index << endl;
+        cout << "Rear index -> " << _rear_index << endl;
+        cout << "Is empty -> " << empty() << endl;
+        cout << "Is full -> " << full() << endl;
+        cout << "Size -> " << size() << endl;
         cout << endl;
 
         ++debug_index;
