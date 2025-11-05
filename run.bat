@@ -1,1 +1,2 @@
+cls
 "./build/CircularQueue.exe"
