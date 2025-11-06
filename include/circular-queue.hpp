@@ -2,8 +2,6 @@
 using namespace std;
 
 constexpr unsigned int CIRCULAR_QUEUE_MAXIMUM_CAPACITY = 5;
-
-// TODO: return 'this' pointer where needed
 template <class T, class Allocator = allocator<T>>
 class CircularQueue {
     int _front_index, _rear_index;
@@ -39,6 +37,19 @@ class CircularQueue {
             ++_pointer;
             return temp;
         }
+
+        iterator& operator--() {
+            --_pointer;
+            return *this;
+        }
+
+        iterator operator--(int) {
+            iterator temp = *this;
+            --_pointer;
+            return temp;
+        }
+
+        bool operator<(const iterator& other) { return *_pointer < *(other._pointer); }
 
         bool operator==(const iterator& other) const { return _pointer == other._pointer; }
 
@@ -98,30 +109,21 @@ class CircularQueue {
     void clear() { _rear_index = _front_index = -1; }
 
     reference at(size_type index) {
-        if (!valid_range(index)) {
+        const auto padded_index = index + _front_index;
+        if (!valid_range(padded_index)) {
             throw out_of_range("Index out of range");
         }
 
-        return _data[index];
+        return _data[padded_index];
     }
 
     const_reference at(size_type index) const {
-        if (!valid_range(index)) {
+        const auto padded_index = index + _front_index;
+        if (!valid_range(padded_index)) {
             throw out_of_range("Index out of range");
         }
 
-        return _data[index];
-    }
-
-    // TODO: rewrite function behavior and get rid of "friend"
-    friend ostream& operator<<(ostream& stream, const CircularQueue<value_type>& queue) {
-        if (!queue.empty()) {
-            for (auto i = queue._front_index; i <= queue._rear_index; ++i) {
-                stream << "[" << i << "]:" << queue._data[i] << " ";
-            }
-        }
-
-        return stream;
+        return _data[padded_index];
     }
 
     void enqueue(const value_type& value) {
@@ -151,7 +153,6 @@ class CircularQueue {
         return return_value;
     }
 
-// TODO: consider removing debug function
 #ifdef NDEBUG
     void PRINT_DEBUG_DATA() const {}
 #else
@@ -165,14 +166,13 @@ class CircularQueue {
         cout << "Is empty -> " << empty() << endl;
         cout << "Is full -> " << full() << endl;
         cout << "Size -> " << size() << endl;
-        cout << endl;
 
         ++debug_index;
     }
 #endif
 
    private:
-    bool valid_range(size_type index) { return !(index < _front_index || index > _rear_index); }
+    bool valid_range(size_type index) const { return !(index < _front_index || index > _rear_index); }
 
     void push_back(const value_type& value) {
         if (empty()) {
@@ -198,3 +198,14 @@ class CircularQueue {
         _rear_index = queue_size - 1;
     }
 };
+
+template <class T>
+std::ostream& operator<<(std::ostream& stream, const CircularQueue<T>& queue) {
+    for (auto index = 0; index < queue.size(); ++index) {
+        stream << "[" << index << "]:" << queue.at(index) << " ";
+    }
+
+    return stream;
+}
+
+void MY_DEBUG_TESTS();
